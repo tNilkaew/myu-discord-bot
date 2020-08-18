@@ -8,8 +8,8 @@ from pymongo import MongoClient
 load_dotenv()
 
 cluster = MongoClient(os.getenv('DB_LINK'))
-db = cluster["guilds"]
-collection = db["test"]
+db = cluster["myuDB"]
+collection = db["guilds"]
 
 class GuildAdministration(commands.Cog):
     def __init__(self, bot):
@@ -142,7 +142,6 @@ class GuildAdministration(commands.Cog):
         def check_m(msg):
             return msg.channel == ctx.channel and msg.author == ctx.author
 
-        #TODO: update to the guild document for name, member and veteran promos
         if reaction.emoji == one_emoji:
             await ctx.channel.send("Enter the new name for your guild.")
             guild_name = await self.bot.wait_for('message', check=check_m)
@@ -205,8 +204,18 @@ class GuildAdministration(commands.Cog):
     @guild_cmd.command(name='delete')
     @commands.has_permissions(administrator=True)
     async def delete_guild(self, ctx):
-        collection.delete_one({})
-        await ctx.channel.send("Guild deleted")
+        def check_m(msg):
+            return msg.channel == ctx.channel and msg.author == ctx.author
+
+        await ctx.channel.send("Are you sure you would like to delete the guild? This action will remove all registered members in our database as well.\
+                                \n\nEnter 'Yes' to confirm this action. Enter anything else to cancel this action.")
+        choice = await self.bot.wait_for('message', check=check_m)
+        if choice.content == 'Yes':
+            collection.delete_one({"_id": ctx.guild.id})
+            #TODO: add member purging when guild is deleted.
+            await ctx.channel.send("The guild and respective member data has been deleted.")
+        else:
+            await ctx.channel.send("Guild deletion has been cancelled.")
     
 
     async def check_int(self, ctx, msg_content):

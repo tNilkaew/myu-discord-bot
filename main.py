@@ -10,8 +10,8 @@ load_dotenv()
 client = commands.Bot(command_prefix='.myu ', help_command=None)
 
 cluster = MongoClient(os.getenv('DB_LINK'))
-db = cluster["guilds"]
-collection = db["test"]
+db = cluster["myuDB"]
+collection = db["guilds"]
 
 @client.event
 async def on_ready():
